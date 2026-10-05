@@ -1138,6 +1138,74 @@ describe('parse', function () {
     })
   })
 
+  describe('destructuring assignment', function () {
+    it('should parse a destructuring assignment into a DestructuringAssignmentNode', function () {
+      const node = parse('[m, n] = size(A)')
+      assert.strictEqual(node.type, 'DestructuringAssignmentNode')
+      assert.strictEqual(node.object.type, 'ArrayNode')
+      assert.deepStrictEqual(
+        node.object.items.map(item => item.name), ['m', 'n'])
+      assert.strictEqual(node.value.type, 'FunctionNode')
+    })
+
+    it('should destructure the result of size', function () {
+      const scope = { A: math.matrix([[1, 2, 3], [4, 5, 6]]) }
+      const result = parseAndEval('[m, n] = size(A)', scope)
+      assert.strictEqual(math.typeOf(result), 'DenseMatrix')
+      assert.deepStrictEqual(result.toArray(), [2, 3])
+      assert.strictEqual(scope.m, 2)
+      assert.strictEqual(scope.n, 3)
+    })
+
+    it('should destructure the result of size in Array matrix config', function () {
+      const math2 = math.create({ matrix: 'Array' })
+      const scope = { A: [[1, 2, 3], [4, 5, 6]] }
+      const result = math2.evaluate('[m, n] = size(A)', scope)
+      assert.deepStrictEqual(result, [2, 3])
+      assert.strictEqual(scope.m, 2)
+      assert.strictEqual(scope.n, 3)
+    })
+
+    it('should support swapping variables', function () {
+      const scope = { a: 1, b: 2 }
+      parseAndEval('[a, b] = [b, a]', scope)
+      assert.strictEqual(scope.a, 2)
+      assert.strictEqual(scope.b, 1)
+    })
+
+    it('should destructure min and max calls', function () {
+      const scope = { v: [3, 1, 4, 1, 5] }
+      parseAndEval('[lo, hi] = [min(v), max(v)]', scope)
+      assert.strictEqual(scope.lo, 1)
+      assert.strictEqual(scope.hi, 5)
+    })
+
+    it('should round trip through toString, toTex and JSON with reviver', function () {
+      const node = parse('[m, n] = size(A)')
+      assert.strictEqual(node.toString(), '[m, n] = size(A)')
+      assert.strictEqual(parse(node.toString()).type, 'DestructuringAssignmentNode')
+      assert(node.toTex().includes('='))
+
+      const revived = JSON.parse(JSON.stringify(node), math.reviver)
+      assert.strictEqual(revived.type, 'DestructuringAssignmentNode')
+      assert.strictEqual(revived.toString(), node.toString())
+    })
+
+    it('should give a parse error for a non symbol on the left hand side', function () {
+      assert.throws(function () { parse('[a, 2] = [1, 2]') }, SyntaxError)
+      assert.throws(function () { parse('[] = [1]') }, SyntaxError)
+      assert.throws(function () { parse('[a, b()] = [1, 2]') }, SyntaxError)
+    })
+
+    it('should report both sides sizes and not mutate scope on mismatch', function () {
+      const scope = { a: 1 }
+      assert.throws(function () {
+        parseAndEval('[a, b, c] = [1, 2]', scope)
+      }, /3 variables/)
+      assert.deepStrictEqual(scope, { a: 1 })
+    })
+  })
+
   describe('functions', function () {
     it('should parse functions', function () {
       assert.strictEqual(parseAndEval('sqrt(4)'), 2)

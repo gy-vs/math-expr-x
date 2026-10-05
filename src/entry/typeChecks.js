@@ -14,6 +14,7 @@ export {
   isConditionalNode,
   isConstantNode,
   isDate,
+  isDestructuringAssignmentNode,
   isDenseMatrix,
   isFraction,
   isFunction,

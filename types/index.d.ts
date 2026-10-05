@@ -282,6 +282,23 @@ export interface ConstantNodeCtor {
   ): ConstantNode<TValue>
 }
 
+export interface DestructuringAssignmentNode<
+  TItems extends SymbolNode[] = SymbolNode[],
+  TValue extends MathNode = MathNode
+> extends MathNode {
+  type: 'DestructuringAssignmentNode'
+  isDestructuringAssignmentNode: true
+  object: ArrayNode<TItems>
+  value: TValue
+  name: ''
+}
+export interface DestructuringAssignmentNodeCtor {
+  new <TItems extends SymbolNode[], TValue extends MathNode = MathNode>(
+    object: ArrayNode<TItems>,
+    value: TValue
+  ): DestructuringAssignmentNode<TItems, TValue>
+}
+
 export interface FunctionAssignmentNode<TExpr extends MathNode = MathNode>
   extends MathNode {
   type: 'FunctionAssignmentNode'
@@ -520,6 +537,7 @@ export interface MathJsInstance extends MathJsFactory {
   BlockNode: BlockNodeCtor
   ConditionalNode: ConditionalNodeCtor
   ConstantNode: ConstantNodeCtor
+  DestructuringAssignmentNode: DestructuringAssignmentNodeCtor
   FunctionAssignmentNode: FunctionAssignmentNodeCtor
   FunctionNode: FunctionNodeCtor
   IndexNode: IndexNodeCtor
@@ -3492,6 +3510,10 @@ export interface MathJsInstance extends MathJsFactory {
 
   isConstantNode(x: unknown): x is ConstantNode
 
+  isDestructuringAssignmentNode(
+    x: unknown
+  ): x is DestructuringAssignmentNode
+
   isFunctionAssignmentNode(x: unknown): x is FunctionAssignmentNode
 
   isFunctionNode(x: unknown): x is FunctionNode
@@ -3857,6 +3879,7 @@ export const {
   BlockNodeDependencies,
   ConditionalNodeDependencies,
   ConstantNodeDependencies,
+  DestructuringAssignmentNodeDependencies,
   FunctionAssignmentNodeDependencies,
   IndexNodeDependencies,
   ObjectNodeDependencies,
@@ -7041,6 +7064,7 @@ export const {
   BlockNode,
   ConditionalNode,
   ConstantNode,
+  DestructuringAssignmentNode,
   FunctionAssignmentNode,
   FunctionNode,
   IndexNode,
@@ -7323,6 +7347,7 @@ export const {
   isBlockNode,
   isConditionalNode,
   isConstantNode,
+  isDestructuringAssignmentNode,
   isFunctionAssignmentNode,
   isFunctionNode,
   isIndexNode,
