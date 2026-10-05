@@ -12,6 +12,7 @@ import {
   ConditionalNode,
   ConstantNode,
   create,
+  DestructuringAssignmentNode,
   divideDependencies,
   EvalFunction,
   factory,
@@ -2477,6 +2478,7 @@ Factory Test
     math.isBlockNode,
     math.isConditionalNode,
     math.isConstantNode,
+    math.isDestructuringAssignmentNode,
     math.isFunctionAssignmentNode,
     math.isFunctionNode,
     math.isIndexNode,
@@ -2569,6 +2571,9 @@ Factory Test
   }
   if (math.isConstantNode(x)) {
     expectTypeOf(x).toMatchTypeOf<ConstantNode>()
+  }
+  if (math.isDestructuringAssignmentNode(x)) {
+    expectTypeOf(x).toMatchTypeOf<DestructuringAssignmentNode>()
   }
   if (math.isFunctionAssignmentNode(x)) {
     expectTypeOf(x).toMatchTypeOf<FunctionAssignmentNode>()

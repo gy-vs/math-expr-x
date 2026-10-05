@@ -108,6 +108,7 @@ describe('typeOf', function () {
     assert.strictEqual(math.typeOf(new math.BlockNode([])), 'BlockNode')
     assert.strictEqual(math.typeOf(new math.ConditionalNode(symbolNode, constantNode, constantNode)), 'ConditionalNode')
     assert.strictEqual(math.typeOf(constantNode), 'ConstantNode')
+    assert.strictEqual(math.typeOf(new math.DestructuringAssignmentNode(new math.ArrayNode([symbolNode]), constantNode)), 'DestructuringAssignmentNode')
     assert.strictEqual(math.typeOf(new math.FunctionAssignmentNode('f', [], constantNode)), 'FunctionAssignmentNode')
     assert.strictEqual(math.typeOf(new math.FunctionNode('f', [])), 'FunctionNode')
     assert.strictEqual(math.typeOf(indexNode), 'IndexNode')

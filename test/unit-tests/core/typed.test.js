@@ -285,6 +285,17 @@ describe('typed', function () {
     assert.strictEqual(math.isAssignmentNode(), false)
   })
 
+  it('should test whether a value is a DestructuringAssignmentNode', function () {
+    const variables = new math.ArrayNode([new math.SymbolNode('a')])
+    const value = new math.ConstantNode(2)
+
+    assert.strictEqual(math.isDestructuringAssignmentNode(new math.DestructuringAssignmentNode(variables, value)), true)
+    assert.strictEqual(math.isDestructuringAssignmentNode(new math2.DestructuringAssignmentNode(variables, value)), true)
+    assert.strictEqual(math.isDestructuringAssignmentNode({ isDestructuringAssignmentNode: true }), false)
+    assert.strictEqual(math.isDestructuringAssignmentNode(2), false)
+    assert.strictEqual(math.isDestructuringAssignmentNode(), false)
+  })
+
   it('should test whether a value is an AccessorNode', function () {
     const a = new math.SymbolNode('a')
     const index = new math.IndexNode([new math.ConstantNode('b')])

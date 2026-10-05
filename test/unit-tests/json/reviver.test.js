@@ -246,4 +246,32 @@ describe('reviver', function () {
     assert.strictEqual(node.type, 'OperatorNode')
     assert.strictEqual(node.toString(), '2 + sin(3 x)')
   })
+
+  it('should parse a stringified DestructuringAssignmentNode', function () {
+    const json = JSON.stringify({
+      mathjs: 'DestructuringAssignmentNode',
+      variables: {
+        mathjs: 'ArrayNode',
+        items: [
+          { mathjs: 'SymbolNode', name: 'm' },
+          { mathjs: 'SymbolNode', name: 'n' }
+        ]
+      },
+      value: {
+        mathjs: 'FunctionNode',
+        fn: { mathjs: 'SymbolNode', name: 'size' },
+        args: [{ mathjs: 'SymbolNode', name: 'A' }]
+      }
+    })
+
+    const node = JSON.parse(json, reviver)
+
+    assert.strictEqual(node.type, 'DestructuringAssignmentNode')
+    assert.strictEqual(node.toString(), '[m, n] = size(A)')
+
+    const scope = { A: math.matrix([[1, 2, 3], [4, 5, 6]]) }
+    node.evaluate(scope)
+    assert.strictEqual(scope.m, 2)
+    assert.strictEqual(scope.n, 3)
+  })
 })

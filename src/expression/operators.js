@@ -22,7 +22,8 @@ import { isConstantNode, isParenthesisNode, rule2Node } from '../utils/is.js'
 export const properties = [
   { // assignment
     AssignmentNode: {},
-    FunctionAssignmentNode: {}
+    FunctionAssignmentNode: {},
+    DestructuringAssignmentNode: {}
   },
   { // conditional expression
     ConditionalNode: {

@@ -1,5 +1,5 @@
 import { factory } from '../utils/factory.js'
-import { isAccessorNode, isConstantNode, isFunctionNode, isOperatorNode, isSymbolNode, rule2Node } from '../utils/is.js'
+import { isAccessorNode, isArrayNode, isConstantNode, isFunctionNode, isOperatorNode, isSymbolNode, rule2Node } from '../utils/is.js'
 import { deepMap } from '../utils/collection.js'
 import { safeNumberType } from '../utils/number.js'
 import { hasOwnProperty } from '../utils/object.js'
@@ -15,6 +15,7 @@ const dependencies = [
   'BlockNode',
   'ConditionalNode',
   'ConstantNode',
+  'DestructuringAssignmentNode',
   'FunctionAssignmentNode',
   'FunctionNode',
   'IndexNode',
@@ -36,6 +37,7 @@ export const createParse = /* #__PURE__ */ factory(name, dependencies, ({
   BlockNode,
   ConditionalNode,
   ConstantNode,
+  DestructuringAssignmentNode,
   FunctionAssignmentNode,
   FunctionNode,
   IndexNode,
@@ -670,6 +672,7 @@ export const createParse = /* #__PURE__ */ factory(name, dependencies, ({
    * - can be a variable like 'a=2.3'
    * - or a updating an existing variable like 'matrix(2,3:5)=[6,7,8]'
    * - defining a function like 'f(x) = x^2'
+   * - destructuring multiple variables like '[m, n] = size(A)'
    * @return {Node} node
    * @private
    */
@@ -690,6 +693,15 @@ export const createParse = /* #__PURE__ */ factory(name, dependencies, ({
         getTokenSkipNewline(state)
         value = parseAssignment(state)
         return new AssignmentNode(node.object, node.index, value)
+      } else if (isArrayNode(node)) {
+        // parse a destructuring assignment like '[m, n] = size(A)'
+        if (node.items.length === 0 || !node.items.every(isSymbolNode)) {
+          throw createSyntaxError(state, 'Destructuring assignment expects a comma separated list of variables on the left hand side of =')
+        }
+
+        getTokenSkipNewline(state)
+        value = parseAssignment(state)
+        return new DestructuringAssignmentNode(node, value)
       } else if (isFunctionNode(node) && isSymbolNode(node.fn)) {
         // parse function assignment like 'f(x) = x^2'
         valid = true
@@ -1111,8 +1123,8 @@ export const createParse = /* #__PURE__ */ factory(name, dependencies, ({
   }
 
   /**
-   * Infamous "rule 2" as described in 
-   * And as amended in 
+   * Infamous "rule 2" as described in
+   * And as amended in
    * Explicit division gets higher precedence than implicit multiplication
    * when the division matches this pattern:
    *   [unaryPrefixOp]?[number] / [number] [symbol]

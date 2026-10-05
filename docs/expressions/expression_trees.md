@@ -440,6 +440,37 @@ const node3 = new math.ConstantNode('foo')
 ```
 
 
+### DestructuringAssignmentNode
+
+A `DestructuringAssignmentNode` is created when parsing a destructuring
+assignment like `[m, n] = size(A)`. Evaluating the node assigns the elements
+of the right hand side, which must be a one-dimensional `Array` or `Matrix`,
+to the variables on the left hand side in order. The number of variables must
+match the number of elements; when it doesn't, an error is thrown and none of
+the variables are assigned.
+
+Construction:
+
+```
+new DestructuringAssignmentNode(variables: ArrayNode, value: Node)
+```
+
+Properties:
+
+- `variables: ArrayNode` An `ArrayNode` containing only `SymbolNode`s
+- `value: Node`
+
+Examples:
+
+```js
+const node1 = math.parse('[m, n] = size(A)')
+
+const variables = new math.ArrayNode([new math.SymbolNode('m'), new math.SymbolNode('n')])
+const value = new math.SymbolNode('v')
+const node2 = new math.DestructuringAssignmentNode(variables, value)
+```
+
+
 ### FunctionAssignmentNode
 
 Construction:

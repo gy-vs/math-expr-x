@@ -354,6 +354,32 @@ Variable names must:
 
 It is possible to customize the allowed alpha characters, see [Customize supported characters](customization.md#customize-supported-characters) for more information.
 
+### Destructuring assignment
+
+Multiple variables can be defined at once by assigning a one-dimensional
+vector (an `Array` or a `Matrix`) to a list of variables enclosed in square
+brackets. The elements of the vector are assigned to the variables in order,
+and the value of the whole expression is the right hand side value, just like
+with a regular assignment. The number of variables must match the number of
+elements; when it doesn't, an error is thrown and none of the variables are
+assigned.
+
+```js
+const parser = math.parser()
+
+// define multiple variables at once
+parser.evaluate('[m, n] = size([1, 2, 3; 4, 5, 6])')
+parser.evaluate('m')            // 2
+parser.evaluate('n')            // 3
+
+// swap two variables
+parser.evaluate('a = 1')        // 1
+parser.evaluate('b = 2')        // 2
+parser.evaluate('[a, b] = [b, a]')
+parser.evaluate('a')            // 2
+parser.evaluate('b')            // 1
+```
+
 
 ## Data types
 

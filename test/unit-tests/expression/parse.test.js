@@ -1138,6 +1138,131 @@ describe('parse', function () {
     })
   })
 
+  describe('destructuring assignment', function () {
+    it('should parse a destructuring assignment', function () {
+      const node = parse('[m, n] = size(A)')
+      assert.strictEqual(node.type, 'DestructuringAssignmentNode')
+      assert.strictEqual(node.variables.type, 'ArrayNode')
+      assert.deepStrictEqual(node.variables.items.map(item => item.name), ['m', 'n'])
+      assert.strictEqual(node.value.toString(), 'size(A)')
+    })
+
+    it('should evaluate a destructuring assignment with a Matrix as right hand side', function () {
+      const scope = { A: math.matrix([[1, 2, 3], [4, 5, 6]]) }
+      const result = parseAndEval('[m, n] = size(A)', scope)
+      assert(math.isMatrix(result)) // the value of the expression is the right hand side value
+      assert.deepStrictEqual(result.valueOf(), [2, 3])
+      assert.strictEqual(scope.m, 2)
+      assert.strictEqual(scope.n, 3)
+    })
+
+    it('should evaluate a destructuring assignment with an Array as right hand side', function () {
+      const scope = { v: [10, 20] }
+      const result = parseAndEval('[first, second] = v', scope)
+      assert.deepStrictEqual(result, [10, 20])
+      assert.strictEqual(scope.first, 10)
+      assert.strictEqual(scope.second, 20)
+    })
+
+    it('should evaluate a destructuring assignment with a matrix literal', function () {
+      const scope = {}
+      parseAndEval('[x, y] = [3, 4]', scope)
+      assert.strictEqual(scope.x, 3)
+      assert.strictEqual(scope.y, 4)
+    })
+
+    it('should evaluate a destructuring assignment with a single variable', function () {
+      const scope = {}
+      parseAndEval('[x] = [42]', scope)
+      assert.strictEqual(scope.x, 42)
+    })
+
+    it('should swap variables with a destructuring assignment', function () {
+      const scope = { a: 1, b: 2 }
+      parseAndEval('[a, b] = [b, a]', scope)
+      assert.strictEqual(scope.a, 2)
+      assert.strictEqual(scope.b, 1)
+    })
+
+    it('should destructure the results of function calls', function () {
+      const scope = { v: [3, 1, 4, 1, 5, 9, 2, 6] }
+      parseAndEval('[lo, hi] = [min(v), max(v)]', scope)
+      assert.strictEqual(scope.lo, 1)
+      assert.strictEqual(scope.hi, 9)
+    })
+
+    it('should evaluate a destructuring assignment when matrix config is Array', function () {
+      const mathArray = math.create({ matrix: 'Array' })
+      const scope = { A: [[1, 2, 3], [4, 5, 6]] }
+      const result = mathArray.parse('[m, n] = size(A)').evaluate(scope)
+      assert.deepStrictEqual(result, [2, 3])
+      assert.strictEqual(scope.m, 2)
+      assert.strictEqual(scope.n, 3)
+    })
+
+    it('should evaluate a destructuring assignment in a block', function () {
+      const scope = { A: math.matrix([[1, 2, 3], [4, 5, 6]]) }
+      assert.deepStrictEqual(parseAndEval('[m, n] = size(A); m * n', scope), new ResultSet([6]))
+      assert.strictEqual(scope.m, 2)
+      assert.strictEqual(scope.n, 3)
+    })
+
+    it('should throw a descriptive error when the number of variables and elements differ', function () {
+      assert.throws(function () { parseAndEval('[a, b, c] = [1, 2]', {}) },
+        /Destructuring assignment mismatch: 3 variables on the left hand side, but 2 elements on the right hand side/)
+      assert.throws(function () { parseAndEval('[a] = [1, 2]', {}) },
+        /Destructuring assignment mismatch: 1 variables on the left hand side, but 2 elements on the right hand side/)
+    })
+
+    it('should leave all variables untouched when destructuring fails', function () {
+      const scope = { a: 1, b: 2 }
+      assert.throws(function () { parseAndEval('[a, b, c] = [10, 20]', scope) })
+      assert.deepStrictEqual(scope, { a: 1, b: 2 })
+    })
+
+    it('should throw an error when the right hand side is not a one-dimensional vector', function () {
+      assert.throws(function () { parseAndEval('[a] = 2', {}) },
+        /TypeError: Right hand side of destructuring assignment must be a one-dimensional array or matrix/)
+      assert.throws(function () { parseAndEval('[a, b] = [[1, 2], [3, 4]]', {}) },
+        /TypeError: Right hand side of destructuring assignment must be a one-dimensional array or matrix/)
+    })
+
+    it('should throw a syntax error when the left hand side contains non-variables', function () {
+      assert.throws(function () { parse('[a, 2] = [1, 2]') },
+        /SyntaxError: Destructuring assignment expects a comma separated list of variables on the left hand side of =/)
+      assert.throws(function () { parse('[a.b, c] = [1, 2]') },
+        /SyntaxError: Destructuring assignment expects a comma separated list of variables on the left hand side of =/)
+      assert.throws(function () { parse('[[a, b], c] = [1, 2]') },
+        /SyntaxError: Destructuring assignment expects a comma separated list of variables on the left hand side of =/)
+      assert.throws(function () { parse('[] = [1, 2]') },
+        /SyntaxError: Destructuring assignment expects a comma separated list of variables on the left hand side of =/)
+    })
+
+    it('should throw an error when destructuring to a reserved keyword', function () {
+      assert.throws(function () { parse('[end] = [1]') }, /Cannot assign to symbol "end"/)
+    })
+
+    it('should stringify a destructuring assignment and parse it back to an equal node', function () {
+      const node = parse('[m, n] = size(A)')
+      const reparsed = parse(node.toString())
+      assert.strictEqual(node.toString(), '[m, n] = size(A)')
+      assert(node.equals(reparsed))
+    })
+
+    it('should stringify a destructuring assignment with parenthesis option all', function () {
+      assert.strictEqual(parseAndStringifyWithParens('[m, n] = size(A)'), '[m, n] = (size(A))')
+    })
+
+    it('should LaTeX a destructuring assignment', function () {
+      assert.strictEqual(parse('[x, y] = [1, 2]').toTex(), '\\begin{bmatrix} x\\\\ y\\end{bmatrix}=\\begin{bmatrix}1\\\\2\\end{bmatrix}')
+    })
+
+    it('should keep parsing a matrix literal as an ArrayNode', function () {
+      assert.strictEqual(parse('[a, b]').type, 'ArrayNode')
+      assert.strictEqual(parse('[1, 2]').type, 'ArrayNode')
+    })
+  })
+
   describe('functions', function () {
     it('should parse functions', function () {
       assert.strictEqual(parseAndEval('sqrt(4)'), 2)

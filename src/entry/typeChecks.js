@@ -13,6 +13,7 @@ export {
   isComplex,
   isConditionalNode,
   isConstantNode,
+  isDestructuringAssignmentNode,
   isDate,
   isDenseMatrix,
   isFraction,

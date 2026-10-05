@@ -282,6 +282,20 @@ export interface ConstantNodeCtor {
   ): ConstantNode<TValue>
 }
 
+export interface DestructuringAssignmentNode<TValue extends MathNode = MathNode>
+  extends MathNode {
+  type: 'DestructuringAssignmentNode'
+  isDestructuringAssignmentNode: true
+  variables: ArrayNode
+  value: TValue
+}
+export interface DestructuringAssignmentNodeCtor {
+  new <TValue extends MathNode = MathNode>(
+    variables: ArrayNode,
+    value: TValue
+  ): DestructuringAssignmentNode<TValue>
+}
+
 export interface FunctionAssignmentNode<TExpr extends MathNode = MathNode>
   extends MathNode {
   type: 'FunctionAssignmentNode'
@@ -520,6 +534,7 @@ export interface MathJsInstance extends MathJsFactory {
   BlockNode: BlockNodeCtor
   ConditionalNode: ConditionalNodeCtor
   ConstantNode: ConstantNodeCtor
+  DestructuringAssignmentNode: DestructuringAssignmentNodeCtor
   FunctionAssignmentNode: FunctionAssignmentNodeCtor
   FunctionNode: FunctionNodeCtor
   IndexNode: IndexNodeCtor
@@ -538,7 +553,7 @@ export interface MathJsInstance extends MathJsFactory {
    * auto-suggested as an import in VSCode. This causes issues because
    * `null` is not a valid label.
    *
-   * @see 
+   * @see
    */
   // null: number;
 
@@ -3491,6 +3506,8 @@ export interface MathJsInstance extends MathJsFactory {
   isConditionalNode(x: unknown): x is ConditionalNode
 
   isConstantNode(x: unknown): x is ConstantNode
+
+  isDestructuringAssignmentNode(x: unknown): x is DestructuringAssignmentNode
 
   isFunctionAssignmentNode(x: unknown): x is FunctionAssignmentNode
 
@@ -7323,6 +7340,7 @@ export const {
   isBlockNode,
   isConditionalNode,
   isConstantNode,
+  isDestructuringAssignmentNode,
   isFunctionAssignmentNode,
   isFunctionNode,
   isIndexNode,
